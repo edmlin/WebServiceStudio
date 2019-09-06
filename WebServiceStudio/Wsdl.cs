@@ -746,6 +746,7 @@ namespace WebServiceStudio
         private void ProcessRemoteUrls(DiscoveryClientProtocol client, StringCollection urls, XmlSchemas schemas,
             ServiceDescriptionCollection descriptions)
         {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             StringEnumerator enumerator = urls.GetEnumerator();
             while (enumerator.MoveNext())
             {

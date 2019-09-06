@@ -983,7 +983,8 @@ namespace WebServiceStudio
 
         private void SendWebRequest()
         {
-            Encoding encoding = new UTF8Encoding(true);
+            //Encoding encoding = new UTF8Encoding(true);
+            Encoding encoding = new UTF8Encoding();
             var selectedObject = propRequest.SelectedObject as RequestProperties;
             var request = (HttpWebRequest) WebRequest.CreateDefault(new Uri(selectedObject.Url));
             if ((selectedObject.HttpProxy != null) && (selectedObject.HttpProxy.Length != 0))
@@ -992,7 +993,7 @@ namespace WebServiceStudio
             }
             request.Method = selectedObject.Method.ToString();
             request.ContentType = selectedObject.ContentType;
-            request.Headers["SOAPAction"] = selectedObject.SOAPAction;
+           	request.Headers["SOAPAction"] = selectedObject.SOAPAction;
             request.SendChunked = selectedObject.SendChunked;
             request.AllowAutoRedirect = selectedObject.AllowAutoRedirect;
             request.AllowWriteStreamBuffering = selectedObject.AllowWriteStreamBuffering;
@@ -1031,7 +1032,8 @@ namespace WebServiceStudio
             }
             if (selectedObject.Method == RequestProperties.HttpMethod.POST)
             {
-                request.ContentLength = richRequest.Text.Length + encoding.GetPreamble().Length;
+                //request.ContentLength = richRequest.Text.Length + encoding.GetPreamble().Length;
+                request.ContentLength=encoding.GetByteCount(richRequest.Text)+encoding.GetPreamble().Length;
                 var writer = new StreamWriter(request.GetRequestStream(), encoding);
                 writer.Write(richRequest.Text);
                 writer.Close();

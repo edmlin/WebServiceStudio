@@ -110,6 +110,8 @@ namespace WebServiceStudio
 
         internal static string ReadMessage(Stream from, int len, string contentType)
         {
+        	if(len<0) len=(int)(from.Length);
+        	
             if ((contentType.StartsWith("text/xml") || contentType.StartsWith("application/soap+xml")) ||
                 (contentType == "http://schemas.xmlsoap.org/soap/envelope/"))
             {
@@ -122,6 +124,7 @@ namespace WebServiceStudio
                 document.Save(writer2);
                 return w.ToString();
             }
+            
             if (contentType.StartsWith("text"))
             {
                 byte[] buffer = ReadStream(from, len);
