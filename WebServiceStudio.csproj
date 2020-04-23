@@ -84,6 +84,9 @@
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>WebServiceStudio.WebServiceStudio.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System">
       <Name>System</Name>
@@ -151,9 +154,7 @@
     <Compile Include="WebServiceStudio\ListStandardValues.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="WebServiceStudio\MainForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="WebServiceStudio\MainForm.cs" />
     <Compile Include="WebServiceStudio\MessageTracer.cs">
       <SubType>Code</SubType>
     </Compile>

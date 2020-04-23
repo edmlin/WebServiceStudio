@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Collections.Generic;
+using System.Net;
 using System.Web.Services.Protocols;
 
 namespace WebServiceStudio
@@ -29,7 +30,10 @@ namespace WebServiceStudio
         public string url;
         public bool useCookieContainer;
         public bool useDefaultCredential;
-
+        public string authorization = "";
+        public string Authorization { get { return authorization; } set { authorization = value; } }
+        public List<Header> additionalHeaders = new List<Header>();
+        public List<Header> AdditionalHeaders { get { return additionalHeaders; } set { additionalHeaders = value; } }
         public RequestProperties(HttpWebClientProtocol proxy)
         {
             if (proxy != null)

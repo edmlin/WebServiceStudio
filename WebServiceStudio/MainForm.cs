@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
@@ -13,6 +14,11 @@ using System.Xml.Serialization;
 
 namespace WebServiceStudio
 {
+    class Header
+    {
+        public string Name { get; set; }
+        public string Value { get; set; }
+    }
     public class MainForm : Form
     {
         private static bool isV1;
@@ -62,6 +68,8 @@ namespace WebServiceStudio
         private PropertyGrid propInput;
         private PropertyGrid propOutput;
         private PropertyGrid propRequest;
+        private DataGridView dgRequestHeaders;
+        private DataGridView dgResponseHeaders;
         private RichTextBox richMessage;
         private RichTextBox richRequest;
         private RichTextBox richResponse;
@@ -71,6 +79,8 @@ namespace WebServiceStudio
         private Splitter splitterInvoke;
         private Splitter splitterRaw;
         private Splitter splitterWsdl;
+        private Splitter splitterHeader1;
+        private Splitter splitterHeader2;
         private TabControl tabMain;
         private TabPage tabPageInvoke;
         private TabPage tabPageMessage;
@@ -83,6 +93,10 @@ namespace WebServiceStudio
         private TreeView treeOutput;
         private TreeView treeWsdl;
         private Wsdl wsdl;
+        private BindingList<Header> requestHeaders=new BindingList<Header>();
+        private BindingList<Header> responseHeaders = new BindingList<Header>();
+        private BindingSource requestHeadersSource = new BindingSource();
+        private BindingSource responseHeadersSource = new BindingSource();
 
         public MainForm()
         {
@@ -370,6 +384,10 @@ namespace WebServiceStudio
             buttonSend = new Button();
             richRequest = new RichTextBox();
             propRequest = new PropertyGrid();
+            dgRequestHeaders = new DataGridView();
+            dgResponseHeaders = new DataGridView();
+            splitterHeader1 = new Splitter();
+            splitterHeader2 = new Splitter();
             richResponse = new RichTextBox();
             labelRequest = new Label();
             labelResponse = new Label();
@@ -628,11 +646,48 @@ namespace WebServiceStudio
             tabPageRaw.Name = "tabPageRaw";
             tabPageRaw.Text = "Request/Response";
             panelLeftRaw.BorderStyle = BorderStyle.None;
-            panelLeftRaw.Controls.AddRange(new Control[] {propRequest});
+            splitterHeader1.Size = new Size(0, 3);
+            splitterHeader1.Location = new Point(0, 0);
+            splitterHeader1.Dock = DockStyle.Top;
+            splitterHeader2.Size = new Size(0, 3);
+            splitterHeader2.Location = new Point(0, 0);
+            splitterHeader2.Dock = DockStyle.Top;
+            dgRequestHeaders.Location = new Point(0, 0);
+            dgRequestHeaders.AutoGenerateColumns = true;
+            dgRequestHeaders.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgRequestHeaders.Dock = DockStyle.Top;
+            requestHeadersSource.DataSource = requestHeaders;
+            dgRequestHeaders.DataSource = requestHeadersSource;
+            dgRequestHeaders.AllowUserToAddRows = false;
+            dgRequestHeaders.ReadOnly = true;
+            dgRequestHeaders.RowHeadersVisible = false;
+            dgRequestHeaders.AllowUserToResizeColumns = true;
+            dgRequestHeaders.DataBindingComplete += (s, e) =>
+            {
+                dgRequestHeaders.Columns[0].HeaderText = "Req Header";
+            };
+            dgResponseHeaders.Location = new Point(0, 0);
+            dgResponseHeaders.AutoGenerateColumns = true;
+            dgResponseHeaders.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgResponseHeaders.Dock = DockStyle.Fill;
+            responseHeadersSource.DataSource = responseHeaders;
+            dgResponseHeaders.DataSource = responseHeadersSource;
+            dgResponseHeaders.AllowUserToAddRows = false;
+            dgResponseHeaders.ReadOnly = true;
+            dgResponseHeaders.RowHeadersVisible = false;
+            dgResponseHeaders.AllowUserToResizeColumns = true;
+            dgResponseHeaders.DataBindingComplete += (s, e) =>
+            {
+                dgResponseHeaders.Columns[0].HeaderText = "Resp Header";
+            };
+            propRequest.Dock = DockStyle.Top;
+            panelLeftRaw.Controls.AddRange(new Control[] {dgResponseHeaders, splitterHeader2, dgRequestHeaders, splitterHeader1, propRequest });
             panelLeftRaw.Dock = DockStyle.Left;
             panelLeftRaw.Name = "panelLeftRaw";
             panelLeftRaw.Size = new Size(0xd0, 0x1fd);
-            panelLeftRaw.SizeChanged += PanelLeftRaw_SizeChanged;
+            panelLeftRaw.ResumeLayout(false);
+            dgRequestHeaders.Height = panelLeftRaw.Height / 4;
+            //panelLeftRaw.SizeChanged += PanelLeftRaw_SizeChanged;
             panelRightRaw.BorderStyle = BorderStyle.None;
             panelRightRaw.Controls.AddRange(new Control[]
             {buttonSend, richRequest, richResponse, labelRequest, labelResponse});
@@ -657,7 +712,7 @@ namespace WebServiceStudio
             richRequest.Size = new Size(0x200, 0x110);
             richRequest.Text = "";
             richRequest.WordWrap = false;
-            propRequest.Dock = DockStyle.Fill;
+            propRequest.Height = panelLeftRaw.Height/2 ;
             propRequest.CommandsVisibleIfAvailable = true;
             propRequest.HelpVisible = false;
             propRequest.LargeButtons = false;
@@ -738,16 +793,23 @@ namespace WebServiceStudio
                     treeOutput.Nodes.Add(property2.TreeNode);
                     treeOutput.ExpandAll();
                 }
+                catch(Exception ex)
+                {
+                    ShowMessageInternal(this, MessageType.Error, ex.Message);
+                    ShowMessageInternal(this, MessageType.Error, ex.StackTrace);
+                    tabMain.SelectTab(tabPageRaw);
+                }
                 finally
                 {
                     WSSWebRequest.RequestTrace = null;
                     propRequest.SelectedObject = properties;
                     richRequest.Text = properties.requestPayLoad;
                     richResponse.Text = properties.responsePayLoad;
+                    DumpRequestHeaders(WSSWebRequest.RequestHeaders);
+                    DumpResonseHeaders(WSSWebRequest.ResponseHeaders);
                 }
             }
         }
-
         private bool IsValidCopyNode(TreeNodeProperty tnp)
         {
             return (((tnp != null) && (tnp.TreeNode.Parent != null)) && (tnp.GetType() != typeof (TreeNodeProperty)));
@@ -1001,6 +1063,27 @@ namespace WebServiceStudio
             request.Pipelined = selectedObject.Pipelined;
             request.PreAuthenticate = selectedObject.PreAuthenticate;
             request.Timeout = selectedObject.Timeout;
+            if(selectedObject.Authorization.Trim()!="")
+            {
+                request.Headers.Add(HttpRequestHeader.Authorization, selectedObject.Authorization);
+            }
+            
+            foreach(Header header in selectedObject.AdditionalHeaders)
+            {
+                if(header.Name!=null && header.Name.Trim()!="")
+                {
+                    try
+                    {
+                        request.Headers.Add(header.Name, header.Value);
+                    }
+                    catch(Exception ex)
+                    {
+                        ShowMessageInternal(this, MessageType.Error, ex.Message);
+                        ShowMessageInternal(this, MessageType.Error, ex.StackTrace);
+                    }
+                }
+            }
+            
             HttpWebClientProtocol proxy = GetCurrentMethodProperty().GetProxyProperty().GetProxy();
             if (selectedObject.UseCookieContainer)
             {
@@ -1042,6 +1125,8 @@ namespace WebServiceStudio
             {
                 var response = (HttpWebResponse) request.GetResponse();
                 DumpResponse(response);
+                DumpRequestHeaders(request.Headers);
+                DumpResonseHeaders(response.Headers);
                 response.Close();
             }
             catch (WebException exception)
@@ -1049,6 +1134,8 @@ namespace WebServiceStudio
                 if (exception.Response != null)
                 {
                     DumpResponse((HttpWebResponse) exception.Response);
+                    DumpRequestHeaders(request.Headers);
+                    DumpResonseHeaders(exception.Response.Headers);
                 }
                 else
                 {
@@ -1060,6 +1147,26 @@ namespace WebServiceStudio
                 richResponse.Text = exception2.ToString();
             }
         }
+
+        private void DumpRequestHeaders(WebHeaderCollection headers)
+        {
+            this.requestHeaders.Clear();
+            if (headers == null) return;
+            foreach (string name in headers)
+            {
+                this.requestHeaders.Add(new Header() { Name = name, Value = headers[name] });
+            }
+        }
+        private void DumpResonseHeaders(WebHeaderCollection headers)
+        {
+            this.responseHeaders.Clear();
+            if (headers == null) return;
+            foreach (string name in headers)
+            {
+                this.responseHeaders.Add(new Header() { Name = name, Value = headers[name] });
+            }
+        }
+
 
         private void SetupAssemblyResolver()
         {

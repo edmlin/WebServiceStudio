@@ -9,7 +9,8 @@ namespace WebServiceStudio
         private static RequestProperties requestProperties;
         private readonly MemoryStream stream;
         private readonly WebRequest webRequest;
-
+        public static WebHeaderCollection RequestHeaders { get; set; }
+        public static WebHeaderCollection ResponseHeaders { get; set; }
         public WSSWebRequest(WebRequest webRequest)
         {
             this.webRequest = webRequest;
@@ -130,6 +131,7 @@ namespace WebServiceStudio
                 var response2 = new WSSWebResponse(webRequest.GetResponse());
                 requestProperties.responsePayLoad = response2.DumpResponse();
                 response4 = response2;
+                ResponseHeaders = response4.Headers;
             }
             catch (WebException exception)
             {
@@ -137,6 +139,7 @@ namespace WebServiceStudio
                 {
                     var response = new WSSWebResponse(exception.Response);
                     requestProperties.responsePayLoad = response.DumpResponse();
+                    ResponseHeaders = response.Headers;
                     throw new WebException(exception.Message, exception, exception.Status, response);
                 }
                 requestProperties.responsePayLoad = exception.ToString();
@@ -145,7 +148,12 @@ namespace WebServiceStudio
             catch (Exception exception2)
             {
                 requestProperties.responsePayLoad = exception2.ToString();
+                ResponseHeaders = null;
                 throw;
+            }
+            finally
+            {
+                RequestHeaders = webRequest.Headers;
             }
             return response4;
         }
