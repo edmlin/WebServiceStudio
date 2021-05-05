@@ -806,7 +806,7 @@ namespace WebServiceStudio
                     richRequest.Text = properties.requestPayLoad;
                     richResponse.Text = properties.responsePayLoad;
                     DumpRequestHeaders(WSSWebRequest.RequestHeaders);
-                    DumpResonseHeaders(WSSWebRequest.ResponseHeaders);
+                    DumpResponseHeaders(WSSWebRequest.ResponseHeaders);
                 }
             }
         }
@@ -1126,7 +1126,7 @@ namespace WebServiceStudio
                 var response = (HttpWebResponse) request.GetResponse();
                 DumpResponse(response);
                 DumpRequestHeaders(request.Headers);
-                DumpResonseHeaders(response.Headers);
+                DumpResponseHeaders(response.Headers);
                 response.Close();
             }
             catch (WebException exception)
@@ -1135,7 +1135,7 @@ namespace WebServiceStudio
                 {
                     DumpResponse((HttpWebResponse) exception.Response);
                     DumpRequestHeaders(request.Headers);
-                    DumpResonseHeaders(exception.Response.Headers);
+                    DumpResponseHeaders(exception.Response.Headers);
                 }
                 else
                 {
@@ -1157,7 +1157,7 @@ namespace WebServiceStudio
                 this.requestHeaders.Add(new Header() { Name = name, Value = headers[name] });
             }
         }
-        private void DumpResonseHeaders(WebHeaderCollection headers)
+        private void DumpResponseHeaders(WebHeaderCollection headers)
         {
             this.responseHeaders.Clear();
             if (headers == null) return;
