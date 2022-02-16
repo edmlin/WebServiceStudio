@@ -1,4 +1,4 @@
-This is a fork of WebServiceStudio(https://github.com/adnanmasood/WebServiceStudio , http://webservicestudio.codeplex.com/) , intended to add JSON request capability.
+This is a fork of WebServiceStudio(https://github.com/adnanmasood/WebServiceStudio , http://webservicestudio.codeplex.com/) , intended to add new features and fix some bugs.
 
 
 Riginal README.md:
